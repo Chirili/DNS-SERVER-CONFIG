@@ -4,7 +4,7 @@
 > Antes de empezar me gustaria añadir que este servidor va estar funcionando junto con la configuración de otro [servidor DHCP que ya deberia estar configurado](https://github.com/Chirili/DHCP-SERVER-CONFIG)
 
 - [Requisitos]()
-- [Instalación y configuración del servidor **DNS** en windows](#-Instalación-y-configuración-del-servidor-DNS-en-windows)
+- [Instalación y configuración del servidor DNS en windows](#-Instalación-y-configuración-del-servidor-DNS-en-windows)
 - [Instalación y configuración del servidor DNS en ubuntu(bind9)](#Instalación-y-configuración-del-servidor-DNS-en-ubuntu(bind9))
 
 ## Requisitos
@@ -109,10 +109,104 @@ Ahora lo voy a enseñar desde el **cliente ubuntu server:**
 
 En la imagen se ve como el comando **ifconfig** muestra como el servidor **DHCP** configurado está funcionando y como el comando nslookup devuelve de manerá correcta los valores.
 
-
-
-
-
-
-
 ### Instalación y configuración del servidor DNS en ubuntu(bind9)
+
+Para instalar **bind9** vamos a usar el siguiente comando:
+
+```bash
+apt update && apt upgrade && apt install bind9
+```
+
+Antes de nada nos vamos a mover a la carpeta donde se encuentra instalado bind9 con el comando: **`cd /etc/bind`**
+
+Lo siguiente que vamos a hacer es configura nuestra zona, para eso vamos a editar el archivo **named.conf.local**, con el siguiente comando: **`nano named.conf.local`** y vamos a añadir lo siguiente al archivo:
+
+```bash
+zone "aula11.es" {
+    type master;
+    file "/etc/bind/zones/db.aula11.es";
+}
+zone "1.168.192.in-addr.arpa"{
+    type master;
+    file "/etc/bind/zones/db.192";
+}
+```
+
+Explicación de las configuraciones:
+
+- **Zona directa:**
+    - Para empezar el nombre de **aula11.es** lo podeis modificar a vuestro gusto, mas tarde dentor de otro archivos configuramos mas a fondo los nombres por ejemplo **dns.aula11.es**.
+    - El **type master**, es el tipo de **zona Maestra o Principal** del servidor **DNS**, después de esta se pueden tener zonas esclavas con **type slave**, pero como solo vamos a tener una zona lo dejamos tal cuál.
+    - El **file** contiene la ruta y el nombre del archivo de configuración de dicha zona.
+- **Zona inversa:**
+    - El nombre de la zona tiene que ser vuestra dirección ip de manera inversa mas el **`.in-addr.arpa`**, ej: tengo la direccion ip **192.168.54.20**, pues la zona se llamaria **`54.168.192.in-addr.arpa`**
+    - El tipo es igual que el de la zona directa.
+    - El file es lo mismo tambien que la zona directa.
+
+Cualquier coma mal puesta o falta de ortografia puede causar algun error en el servidor DNS, si quereis comprobar si hay algun error en la configuración del archivo solo teneis que ejecutar el siguiente comando: **`named-checkconf + archivo`**
+
+![Comprobacion de configuracion](Screenshots/BindConfig.PNG)
+
+- Una vez hecho configurado y comprobado que todo está bien vamos a crear una carpeta que es la que va a almacenar los archivos de configuración de las zonas con **`mkdir zones`**.
+
+Ahora vamos a copiar los archivos de configuración por defecto de bind9 a esa carpeta con el siguiente comando: **`cp db.local zones/db.aula11.es`** y **`cp db.127 zones/db.192`** el nombre de los archivos los podeis modificar a vuestro gusto, ahora vamos a configurarlos.
+
+Empezando por el archivo **`db.aula11.es`** **`nano zones/db.aula11.es`** añadimos al archivo los siguiente:
+
+![Configuración zona directa](Screenshots/BindConfig2.PNG)
+
+Voy a añadir unas lineas mas para que veamos como funciona esto:
+
+![Configuración zona directa](Screenshots/BindConfig3.PNG)
+
+Luego vamos al archivo **`db.192`** **`nano zones/db.192`** y añadimos los siguiente:
+
+![Configuración zona directa](Screenshots/BindConfig4.PNG)
+
+Como se puede ver los archivos de configuración de bind9 se componen de varios tipos de registro el primero de tipo **NS** que es el **Name Server**(Nombre del servidor), luego estan los registros de tipo **A**, que es un registro de host que se vincula un dominio con la direccion IP fisica de un ordenador, existen mas tipos de registros:
+- **MX:** dirigen el correo electrónico de un dominio a los servidores que alojan las cuentas del usuario del dominio.
+- **TXT:** proporcionan información de texto a fuentes externas a tu dominio y se puede utilizar con distintos fines.
+- **CNAME:** enlazan un nombre de alias con otro nombre de dominio canónico o auténtico por ejemplo **www.example.com.**
+
+Despues de esta chapa vamos a comprobar que hemos configurado bien los dos archivos, entramos en la carpeta **`zones`** y ejecutamos los siguientes comandos:
+
+- Zona directa:
+```bash
+named-checkzone aula11.es db.aula11.es
+```
+
+Si todo va bien deberia de mostrar lo siguiente:
+
+![Configuración zona directa](Screenshots/BindConfig5.PNG)
+
+- Zona inversa:
+```
+named-checkzone 1.168.192.in-addr.arpa db.192
+```
+
+Y reiniciamos el servicio de bind9:
+
+```bash
+service bind9 restart
+```
+
+Y luego miramos el estado a ver si está funcionando:
+
+```bash
+service bind9 status
+```
+
+Y debería de volver algo parecido a esto:
+
+![Configuración zona directa](Screenshots/BindConfig6.PNG)
+
+Despues para comprobar que funciona podemos usar estos comandos:
+
+- nslookup:
+    - **`nslookup aula11.es`**
+- dig:
+    - **`dig aula11.es`**
+
+Comprobación de las zonas:
+
+![Configuración zona directa](Screenshots/BindConfig7.PNG)
