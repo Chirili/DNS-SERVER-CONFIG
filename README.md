@@ -41,37 +41,61 @@ Al darle a siguiente estaremos en la pantalla para seleccionar el **Nombre de la
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig4.PNG)
 
-Entramos en la carpeta esa y saldrán dos archivos y hacemos clic derecho en la zona black del centro y nos vamos al opción **Host nuevo (A o AAAA)...**
+Entramos en la carpeta esa y saldrán dos archivos y hacemos clic derecho en la zona blanca del centro y nos vamos al opción **Host nuevo (A o AAAA)...**
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig5.PNG)
 
-Al darle se nos abrirá una ventana emergente de configuraciónen la que nos pedirá un **Nombre** y una **dirección IP**, en el nombre podemos poner **mail** como ejemplo y la direccion DNS quedaria así: **`mail.aula11.es`** en mi caso. Una vez introducidos los datos le damos a **Agregar host.**
+Al darle se nos abrirá una ventana emergente de configuraciónen la que nos pedirá un **Nombre** y una **dirección IP**, en el nombre no vamos a poner nada y la direccion IP vamos a poner la que tiene nuestro servidor. Una vez introducidos los datos le damos a **Agregar host.**
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig6.PNG)
 
+**Yo he pues la direccion ip 192.168.1.3, porque es la que tengo asignada ahora mismo a mi servidor, ustedes poneis la vuestra**
+
 Si todo va bien no saltará una ventana emergente diciendo que el host se ha agregado.
 
-Antes de continuar vamos a comprobar que ha funciona lo que hemos hecho.
+Despues de añadir ese host vamos a añadir unos cuantos hosts mas y con distintas direcciones ip:
+    - **`dns.aula11.es`**: este va tener la direccion ip del servidor tambien.
+    - **`web.aula11.es`**: este host va ser de tipo **A o AAAA** y va tener la direccion de nuestro servidor web, para despues asignarle el alias de **www**, **yo en la direccion ip le voy a asignar la 192.168.1.6 aunque no exista**. Después los explico todo.
+    - **`www.aula11.es`**: este va ser de tipo **CNAME** por si queremos tener nuestra pagina web.
+> Para agregar un host de tipo **CNAME** vamos a hacer lo mismo que antes, clic derecho en la zona blanca y saldrá la opción de **Alias nuevo(CNAME)...**
 
-Abrimos el CMD y escribimos los siguientes comandos:
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig15.PNG)
 
-```bash
-ping vuestroDominio(en mi caso es mail.aula11.es)
-```
+Esto es facil ponemos el **Nombre de alias** que es **www** y **Nombre de dominio completo (FQDN) para el host de destino:**, le damos a **Examinar...** y vamos accediendo hasta llegar a la carpeta de nuestro dominio **``aula11.es``** en mi caso, dentro habrá varios archivos que son los hosts que hemos creado anteriormente, le damos en el de **web** que en mi caso tiene la dirección ip **192.168.1.6** y aceptamos.
 
+Hasta este punto deberiamos de tener unos ** 3 achivos de tipo host A** y uno de tipo **CNAME**, es decir, de alias:
+
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig16.PNG)
+
+Vamos a agregar el servidor de correos ya que estamos, agregamos un nuevo host de tipo **A** y le ponemos de nombre **mail** y de dirección ip pues la que tenga nuestro servidor de correos, como no tengo un servidor de correos puesto pues me invento la direccion ip por ejemplo la: **192.168.1.10**.
+
+Y luego vamos a crear el host de tipo **MX**, **Host o dominio secundario**, en blanco y lo que nos interesa es **Nombre de dominio completo(FQDN)...:**, ahi que darle a **Examinar...** y seleccionar el archivo de **mail** con la **direccion ip correspondiente**, o sin entrar a examinar lo escribimos: **`mail.aula11.es`** en mi caso.
+
+
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig17.PNG)
+
+Por ultimo podemos crear dos hosts de prueba, por si tenemos mas maquinas, el primero se va llamar **``WindowsCliente1``** y el otro **`UbuntuCliente1`**. Cada uno con una direccion ip que me he inventado a uno le he puesto la **1.16** y al otro la **1.15**, la zona directa deberia de quedar mas o menos así:
+
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig18.PNG)
+
+Antes de continuar y configurar la zona inversa vamos a comprobar que ha funcionado lo que hemos hecho.
+
+Abrimos el CMD y primero vamos a probar el ping primero:
 Resultado: 
 
-![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig7.PNG)
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig19.PNG)
 
-Y el siguiente comando para ver que de verdad funciona es el nslookup:
+Os pongo en contexto, mi servidor tiene la dirección ip estática **192.168.1.3** en la imagen se ve como los dos primeros pings funcionan y los otros dos no, esto es porque los dos primeros ping se los hago a los hosts que tienen la direccion ip **192.168.1.3** que se ven a la izquierda.
 
-```bash
-nslookup mail.aula11.es
-```
+Entonces si intento hacer un ping a una direccion ip, que no tiene un equipo o un servicio que conteste, saldrá **host de destino no accesible**
+
+Ahora vamos a probar el comando nslookup con los ejemplos anteoriores y añadiré mas:
 
 Resultado:
 
-![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig8.PNG)
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig20.PNG)
+
+**Saldra servidor: Unkown** no os preocupeis por esto, sale eso porque no tenemos configurada todavia la zona inversa, en cuanto la configuremos saldrá nuestro dominio. En la imagen se ve a la derecha el comando **nslookup** y a la izquierda las llamadas a cada archivo y como en el comando nslookup tienen las direcciones IP asignadas a cada archivo.
 
 Pero ahora hay un problema si hacemos el nslookup a la direccion ip no funciona, asi que ahora toca configurar la zona inversa, para hacer esto volvemos a la configuración del DNS
 
@@ -81,7 +105,7 @@ En esta pestaña dejamos marcada la primera opción **Zona de búsqueda inversa 
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig9.PNG)
 
-Al darle a siguiente nos pedirá una **Id. de red** aquí lo que tenemos que poner son las 3 primeras porciones de la direccion IP que le hemos asignado al servidor, en mi caso tengo la **192.168.1.5**, entonces tendría que poner la **192.168.1**, si teneis la direccion ip 192.168.61.100, pues tendríais que poner en el **Id. de red** lo siguiente: **192.168.61**, ya solo faltaría ir dandole a siguiente hasta finalizar la cofiguración
+Al darle a siguiente nos pedirá una **Id. de red** aquí lo que tenemos que poner son las 3 primeras porciones de la direccion IP que le hemos asignado al servidor, en mi caso tengo la **192.168.1.3**, entonces tendría que poner la **192.168.1**, si teneis la direccion ip **192.168.61.100**, pues tendríais que poner en el **Id. de red** lo siguiente: **192.168.61**, ya solo faltaría ir dandole a siguiente hasta finalizar la cofiguración
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig10.PNG)
 
@@ -89,13 +113,23 @@ Conforme acabe la configuración entramos en la carpeta que se habrá creado y l
 
 ![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig11.PNG)
 
-A elegir esa opción se nos abrirá una ventanita llamada **Nuevo registro de recursos**, vamos a ir **Nombre de host** y a **Examinar...**, y se nos abrirá como un explorador de archivos, lo primero que saldrá es el **nombre del servidor**, entramos en el y luego aparecerá la carpeta **Zonas de búsqueda directa**, entramos en ella y saldrá el **nombre de nuestra zona** y dentro de ella el **host** que creamos, lo seleccionamos y aceptamos. Ahora vamos a probar que funciona:
+A elegir esa opción se nos abrirá una ventanita llamada **Nuevo registro de recursos**, vamos a ir **Nombre de host** y a **Examinar...**, y se nos abrirá como un explorador de archivos, lo primero que saldrá es el **nombre del servidor**, entramos en el y luego aparecerá la carpeta **Zonas de búsqueda directa**, entramos en ella y saldrá el **nombre de nuestra zona** y dentro de ella estarán todos los **hosts** que creamos, lo seleccionamos y aceptamos.
+
+> Tenemos que crear un puntero **PTR** por cada host que tenemos configurado en la zona directa, si habeis seguido mis pasos deberiais de tener **unos 6 punteros PTR**
+
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig21.PNG)
+
+Antes de comprobar que funciona esto, vamos a reiniciar el servidor **DNS** en el **Administrador de Servidores**
+
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig22.PNG)
 
 - Abrimos el CMD y ejecutamos el nslookup sobre la direccion ip asignada al servidor:
 
 Resultado:
 
-![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig12.PNG)
+![Configuración del servidor DNS windows](Screenshots/WindowsDNSConfig23.PNG)
+
+En la imagen se ve que funcionan todas las direccion con nslookup.
 
 > Antes de realizar las pruebas teneis que configurar la tarjeta de red en ubuntu de la siguiente manera.
 
