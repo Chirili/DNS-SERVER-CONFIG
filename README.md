@@ -4,6 +4,7 @@
 > Antes de empezar me gustaria añadir que este servidor va estar funcionando junto con la configuración de otro [servidor DHCP que ya deberia estar configurado](https://github.com/Chirili/DHCP-SERVER-CONFIG)
 
 - [Requisitos]()
+- [Instalación con un modelo de examen](Examen/README.md)
 - [Instalación y configuración del servidor DNS en windows](#-Instalación-y-configuración-del-servidor-DNS-en-windows)
 - [Instalación y configuración del servidor DNS en ubuntu(bind9)](#Instalación-y-configuración-del-servidor-DNS-en-ubuntu(bind9))
 
