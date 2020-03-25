@@ -1,0 +1,6 @@
+carmona.com.        IN  SOA dns.carmona.com. andres.carmona.com. 2015082541 7200 3600 1209600 3600
+
+carmona.com.   IN   A   127.0.0.1
+www.carmona.com.   IN  A  127.0.0.1
+mail   IN   A   127.0.0.1
+@   IN   MX   127.0.0.1
